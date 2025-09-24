@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Full Size Premium Slideshow</title>
+  <title>Luxury Cinematic Slideshow</title>
   <style>
     * {
       margin: 0;
@@ -12,117 +12,154 @@
       box-sizing: border-box;
     }
 
-    html,
     body {
-      width: 100%;
-      height: 100%;
+      background: radial-gradient(circle at center, #0d0d0d, #000);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
-      background: #000;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: sans-serif;
     }
 
     .gallery {
       position: relative;
-      width: 100%;
-      height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
+      width: 100%;
+      height: 100%;
+      perspective: 2000px;
     }
 
     .gallery img {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: auto;
-      height: auto;
       max-width: 100vw;
-      max-height: 100vh;
+      max-height: 99.9vh;
       transform: translate(-50%, -50%) scale(0.95);
       opacity: 0;
-      object-fit: contain;
-      border-radius: 12px;
-      will-change: transform, opacity;
+      filter: blur(25px) brightness(0.6);
+      border-radius: 22px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+      object-fit: cover;
     }
 
     .gallery img.active {
       z-index: 10;
-      opacity: 1;
-    }
-
-    .overlay-text {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #fff;
-      font-size: 1.8em;
-      text-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
-      pointer-events: none;
     }
   </style>
 </head>
 
 <body>
-
   <div class="gallery">
-    <img src="https://ik." class="active">
-    <img src="https://ik.imagekit.io/v1idpbbmg/Real.jpg?updatedAt=1758696109873">
+    <img src="https://ik.imagekit.io/v1idpbbmg/Menu.jpg?updatedAt=1758696110032" class="active" id="img1">
+    <img src="https://ik.imagekit.io/v1idpbbmg/Real.jpg?updatedAt=1758696109873" id="img2">
+
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
   <script>
     const images = document.querySelectorAll(".gallery img");
-    let current = 0, isAnimating = false;
+    let current = 0;
 
-    function showImage(nextIndex) {
-      if (isAnimating || nextIndex === current) return;
-      isAnimating = true;
-      const currentImg = images[current];
-      const nextImg = images[nextIndex];
+    function showImage(index, direction = "next") {
+      const active = images[index];
+      images.forEach((img, i) => {
+        if (i !== index) {
+          gsap.to(img, {
+            opacity: 0,
+            scale: 0.85,
+            rotationY: direction === "next" ? -120 : 120,
+            x: direction === "next" ? -200 : 200,
+            filter: "blur(25px) brightness(0.4)",
+            duration: 1.4,
+            ease: "power4.inOut"
+          });
+        }
+      });
 
-      gsap.to(currentImg, { opacity: 0, scale: 0.9, duration: 0.6, ease: "power1.inOut", onComplete: () => { currentImg.classList.remove("active"); } });
-      gsap.fromTo(nextImg, { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power1.out", onComplete: () => { nextImg.classList.add("active"); isAnimating = false; } });
+      gsap.fromTo(active,
+        {
+          opacity: 0,
+          scale: 0.7,
+          rotationY: direction === "next" ? 120 : -120,
+          x: direction === "next" ? 200 : -200,
+          filter: "blur(25px) brightness(0.4)"
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          rotationY: 0,
+          x: 0,
+          filter: "blur(0px) brightness(1)",
+          duration: 1.6,
+          ease: "expo.out"
+        }
+      );
 
-      current = nextIndex;
+      images.forEach(img => img.classList.remove("active"));
+      active.classList.add("active");
+    }
+
+    function nextImage() {
+      current = (current + 1) % images.length;
+      showImage(current, "next");
+    }
+
+    function prevImage() {
+      current = (current - 1 + images.length) % images.length;
+      showImage(current, "prev");
     }
 
     // Scroll
-    let scrollTimeout;
     window.addEventListener("wheel", (e) => {
-      if (scrollTimeout) return;
-      scrollTimeout = setTimeout(() => scrollTimeout = null, 500);
-      if (e.deltaY > 0) showImage((current + 1) % images.length);
-      else showImage((current - 1 + images.length) % images.length);
+      if (e.deltaY > 0) nextImage();
+      else prevImage();
+    });
+
+    // Keyboard
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") nextImage();
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") prevImage();
     });
 
     // Swipe
-    let startX = 0, startY = 0;
-    window.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; });
+    let startX = 0;
+    window.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
     window.addEventListener("touchend", (e) => {
       let endX = e.changedTouches[0].clientX;
-      let endY = e.changedTouches[0].clientY;
-      if (Math.abs(startX - endX) > Math.abs(startY - endY)) {
-        if (startX > endX) showImage((current + 1) % images.length);
-        else showImage((current - 1 + images.length) % images.length);
-      } else {
-        if (startY > endY) showImage((current + 1) % images.length);
-        else showImage((current - 1 + images.length) % images.length);
-      }
+      if (startX > endX + 50) nextImage();
+      else if (startX < endX - 50) prevImage();
     });
 
-    // Keyboard arrows
-    window.addEventListener("keydown", (e) => {
-      if (["ArrowRight", "ArrowDown"].includes(e.key)) showImage((current + 1) % images.length);
-      if (["ArrowLeft", "ArrowUp"].includes(e.key)) showImage((current - 1 + images.length));
-    });
-
-    // Intro animation
+    // Cinematic intro
     window.addEventListener("load", () => {
-      gsap.fromTo(images[current], { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power1.out" });
+      const first = images[0];
+      gsap.fromTo(first,
+        {
+          opacity: 0,
+          scale: 0.6,
+          rotationX: 90,
+          y: 150,
+          filter: "blur(40px) brightness(0.3)"
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          rotationX: 0,
+          y: 0,
+          filter: "blur(0px) brightness(1)",
+          duration: 2,
+          ease: "expo.out"
+        }
+      );
     });
   </script>
 </body>
+
 
 </html>
