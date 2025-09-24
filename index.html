@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luxury Cinematic Slideshow</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #0d0d0d, #000);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    .gallery {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      perspective: 2000px;
+    }
+
+    .gallery img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      max-width: 100vw;
+      max-height: 99.9vh;
+      transform: translate(-50%, -50%) scale(0.95);
+      opacity: 0;
+      filter: blur(25px) brightness(0.6);
+      border-radius: 22px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+      object-fit: cover;
+    }
+
+    .gallery img.active {
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="gallery">
+    <img src="Menu.jpg" class="active" id="img1">
+    <img src="Real.jpg" id="img2">
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script>
+    const images = document.querySelectorAll(".gallery img");
+    let current = 0;
+
+    function showImage(index, direction = "next") {
+      const active = images[index];
+      images.forEach((img, i) => {
+        if (i !== index) {
+          gsap.to(img, {
+            opacity: 0,
+            scale: 0.85,
+            rotationY: direction === "next" ? -120 : 120,
+            x: direction === "next" ? -200 : 200,
+            filter: "blur(25px) brightness(0.4)",
+            duration: 1.4,
+            ease: "power4.inOut"
+          });
+        }
+      });
+
+      gsap.fromTo(active,
+        {
+          opacity: 0,
+          scale: 0.7,
+          rotationY: direction === "next" ? 120 : -120,
+          x: direction === "next" ? 200 : -200,
+          filter: "blur(25px) brightness(0.4)"
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          rotationY: 0,
+          x: 0,
+          filter: "blur(0px) brightness(1)",
+          duration: 1.6,
+          ease: "expo.out"
+        }
+      );
+
+      images.forEach(img => img.classList.remove("active"));
+      active.classList.add("active");
+    }
+
+    function nextImage() {
+      current = (current + 1) % images.length;
+      showImage(current, "next");
+    }
+
+    function prevImage() {
+      current = (current - 1 + images.length) % images.length;
+      showImage(current, "prev");
+    }
+
+    // Scroll
+    window.addEventListener("wheel", (e) => {
+      if (e.deltaY > 0) nextImage();
+      else prevImage();
+    });
+
+    // Keyboard
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") nextImage();
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") prevImage();
+    });
+
+    // Swipe
+    let startX = 0;
+    window.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
+    window.addEventListener("touchend", (e) => {
+      let endX = e.changedTouches[0].clientX;
+      if (startX > endX + 50) nextImage();
+      else if (startX < endX - 50) prevImage();
+    });
+
+    // Cinematic intro
+    window.addEventListener("load", () => {
+      const first = images[0];
+      gsap.fromTo(first,
+        {
+          opacity: 0,
+          scale: 0.6,
+          rotationX: 90,
+          y: 150,
+          filter: "blur(40px) brightness(0.3)"
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          rotationX: 0,
+          y: 0,
+          filter: "blur(0px) brightness(1)",
+          duration: 2,
+          ease: "expo.out"
+        }
+      );
+    });
+  </script>
+</body>
+
+</html>
